@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dự đoán rủi ro sức khỏe</title>
+
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #9face6);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .box {
+      width: 720px;
+      background: white;
+      padding: 20px 25px;
+      border-radius: 14px;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.18);
+    }
+
+    h2 {
+      text-align: center;
+      margin: 5px 0 15px;
+      color: #333;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 18px;
+      row-gap: 10px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 13px;
+      color: #444;
+    }
+
+    input, select {
+      width: 90%;
+      padding: 7px 9px;
+      border-radius: 7px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+    }
+
+    .full {
+      grid-column: span 2;
+    }
+
+    .bmi-box {
+      background: #f3f4ff;
+      padding: 6px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    button {
+      grid-column: span 2;
+      margin-top: 8px;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6c63ff, #4facfe);
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .result {
+      grid-column: span 2;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: #e9ecef;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .high { color: #d90429; font-weight: bold; }
+    .low  { color: #2b9348; font-weight: bold; }
+  </style>
+
+  <script>
+    function calculateBMI() {
+      const w = parseFloat(document.getElementById("weight").value);
+      const h = parseFloat(document.getElementById("height").value);
+
+      if (w > 0 && h > 0) {
+        const bmi = w / Math.pow(h / 100, 2);
+        document.getElementById("bmi").value = bmi.toFixed(2);
+        document.getElementById("bmiDisplay").innerText =
+          "BMI = " + bmi.toFixed(2);
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div class="box">
+    <h2>Dự đoán rủi ro sức khỏe</h2>
+
+    <form method="POST">
+      <label>Tuổi</label>
+      <input type="number" name="age"
+             value="{{ request.form.get('age','') }}" required />
+
+      <label>Số giờ ngủ</label>
+      <input type="number" step="0.1" name="sleep"
+             value="{{ request.form.get('sleep','') }}" required />
+
+      <label>Cân nặng (kg)</label>
+      <input type="number" id="weight" oninput="calculateBMI()"
+             value="{{ request.form.get('weight','') }}" required />
+
+      <label>Chiều cao (cm)</label>
+      <input type="number" id="height" oninput="calculateBMI()"
+             value="{{ request.form.get('height','') }}" required />
+
+      <div class="bmi-box full" id="bmiDisplay">
+        BMI = {{ request.form.get('bmi','--') }}
+      </div>
+      <input type="hidden" name="bmi" id="bmi"
+             value="{{ request.form.get('bmi','') }}"/>
+
+      <label>Hút thuốc</label>
+      <select name="smoking">
+        <option value="yes" {% if request.form.get('smoking')=='yes' %}selected{% endif %}>Có</option>
+        <option value="no"  {% if request.form.get('smoking')=='no'  %}selected{% endif %}>Không</option>
+      </select>
+
+      <label>Tập thể dục</label>
+      <select name="exercise">
+        <option value="low"    {% if request.form.get('exercise')=='low' %}selected{% endif %}>Ít</option>
+        <option value="medium" {% if request.form.get('exercise')=='medium' %}selected{% endif %}>Trung bình</option>
+        <option value="high"   {% if request.form.get('exercise')=='high' %}selected{% endif %}>Nhiều</option>
+      </select>
+
+      <label>Lượng đường tiêu thụ</label>
+      <select name="sugar_intake">
+        <option value="low"    {% if request.form.get('sugar_intake')=='low' %}selected{% endif %}>Thấp</option>
+        <option value="medium" {% if request.form.get('sugar_intake')=='medium' %}selected{% endif %}>Trung bình</option>
+        <option value="high"   {% if request.form.get('sugar_intake')=='high' %}selected{% endif %}>Cao</option>
+      </select>
+
+      <label>Uống rượu</label>
+      <select name="alcohol">
+        <option value="yes" {% if request.form.get('alcohol')=='yes' %}selected{% endif %}>Có</option>
+        <option value="no"  {% if request.form.get('alcohol')=='no'  %}selected{% endif %}>Không</option>
+      </select>
+
+      <button type="submit">Dự đoán</button>
+
+      {% if prediction is not none %}
+      <div class="result">
+        <strong>Kết quả:</strong>
+        <span class="{{ 'high' if prediction==1 else 'low' }}">
+          {{ "Nguy cơ cao" if prediction==1 else "Nguy cơ thấp" }}
+        </span><br/>
+        <strong>Xác suất:</strong> {{ (probability*100) | round(2) }}%
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</body>
+</html>
