@@ -1,11 +1,12 @@
 from flask import Flask, render_template, request
 import joblib
+
 import pandas as pd
 
 app = Flask(__name__)
 
 # Load model
-model = joblib.load("xgboost_pipeline.pkl")
+model = joblib.load("model/xgboost_pipeline.pkl")
 
 @app.route("/", methods=["GET", "POST"])
 def index():

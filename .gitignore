@@ -1,0 +1,9 @@
+data/*
+!data/sample_data.csv
+
+.vscode/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+Thumbs.db
